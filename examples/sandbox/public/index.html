@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conflux x402 Hackathon Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <h1>Conflux x402</h1>
+        <p>Hackathon Demo Console</p>
+      </div>
+      <div class="status-strip">
+        <span id="modeBadge" class="badge badge-muted">Checking mode...</span>
+        <span id="sandboxBadge" class="badge badge-muted">Sandbox: unknown</span>
+        <span id="facilitatorBadge" class="badge badge-muted">Facilitator: unknown</span>
+      </div>
+    </header>
+
+    <nav class="main-nav" aria-label="Primary">
+      <button data-view="overview" class="nav-btn is-active">Overview</button>
+      <button data-view="paywall" class="nav-btn">Paywall Demo</button>
+      <button data-view="discovery" class="nav-btn">Discovery Demo</button>
+      <button data-view="refund" class="nav-btn">Refund Tracker</button>
+      <button data-view="architecture" class="nav-btn">Architecture</button>
+    </nav>
+
+    <main>
+      <section id="view-overview" class="view is-active">
+        <div class="hero">
+          <div>
+            <h2>Monetize APIs with x402 on Conflux eSpace</h2>
+            <p>
+              This demo shows a full developer flow: discover paid agents, inspect payment requirements,
+              execute protected calls, and track refunds.
+            </p>
+            <div class="hero-actions">
+              <button data-view-target="paywall" class="primary">Start Live Demo</button>
+              <button data-view-target="architecture" class="secondary">View Architecture</button>
+            </div>
+          </div>
+          <aside class="panel subtle">
+            <h3>Judge Walkthrough (3 minutes)</h3>
+            <ol>
+              <li>Show 402 payment handshake timeline.</li>
+              <li>Discover chart agent and invoke endpoint.</li>
+              <li>Trigger simulated failure and track refund.</li>
+            </ol>
+          </aside>
+        </div>
+
+        <div class="card-grid">
+          <article class="card">
+            <h3>Paywall Flow</h3>
+            <p>Visualize request -> 402 -> settlement context -> success response.</p>
+            <button data-view-target="paywall" class="link-btn">Open demo</button>
+          </article>
+          <article class="card">
+            <h3>Discovery + Bazaar</h3>
+            <p>Query resources by capability, inspect pricing, and run chart generation.</p>
+            <button data-view-target="discovery" class="link-btn">Open demo</button>
+          </article>
+          <article class="card">
+            <h3>Refund Pipeline</h3>
+            <p>Trigger refund path, capture requestId, and monitor asynchronous status.</p>
+            <button data-view-target="refund" class="link-btn">Open demo</button>
+          </article>
+        </div>
+      </section>
+
+      <section id="view-paywall" class="view">
+        <div class="section-head">
+          <h2>Paywall Demo</h2>
+          <button id="runPaywallFlow" class="primary">Run Paywall Flow</button>
+        </div>
+        <p class="hint">Target: <code>GET /sandbox/weather</code></p>
+
+        <div class="layout-2col">
+          <div class="panel">
+            <h3>Flow Timeline</h3>
+            <ul id="paywallTimeline" class="timeline"></ul>
+          </div>
+          <div class="panel">
+            <h3>Request / Response Inspector</h3>
+            <pre id="paywallInspector" class="code-box">No run yet.</pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-discovery" class="view">
+        <div class="section-head">
+          <h2>Discovery + Chart Demo</h2>
+          <button id="loadResources" class="primary">Load Resources</button>
+        </div>
+
+        <div class="layout-2col">
+          <div class="panel">
+            <h3>Discovered Resources</h3>
+            <p class="hint">Filter capability: <code>chart-generation</code></p>
+            <div id="resourceList" class="stack"></div>
+          </div>
+          <div class="panel">
+            <h3>Invoke Chart Endpoint</h3>
+            <div class="form-row">
+              <label for="chartType">Chart type</label>
+              <select id="chartType">
+                <option value="bar">bar</option>
+                <option value="line">line</option>
+                <option value="pie">pie</option>
+              </select>
+              <button id="callSelectedAgent" class="secondary">Call Endpoint</button>
+            </div>
+            <pre id="discoveryInspector" class="code-box">Load resources first.</pre>
+            <div id="chartPreview" class="chart-preview"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-refund" class="view">
+        <div class="section-head">
+          <h2>Refund Tracker</h2>
+          <button id="triggerRefund" class="primary">Trigger Refund Scenario</button>
+        </div>
+
+        <div class="layout-2col">
+          <div class="panel">
+            <h3>Refund Timeline</h3>
+            <ul id="refundTimeline" class="timeline"></ul>
+          </div>
+          <div class="panel">
+            <h3>Refund Record</h3>
+            <p class="hint">Latest requestId: <code id="refundRequestId">N/A</code></p>
+            <pre id="refundInspector" class="code-box">No run yet.</pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-architecture" class="view">
+        <h2>Architecture</h2>
+        <div class="panel">
+          <pre class="diagram">
+[Browser Demo UI]
+      |
+      | 1) request protected API
+      v
+[Sandbox API + x402 middleware] -- verify/settle --> [Facilitator]
+      |                                                    |
+      | 2) discovery metadata + routes                     | 3) network settlement
+      v                                                    v
+[.well-known + /chart + /refunds]                  [Conflux eSpace + AgentRegistry]
+          </pre>
+          <p>
+            Guardrails included in this repo: auth gate before payment, rate/idempotency checks,
+            and asynchronous refund state tracking.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

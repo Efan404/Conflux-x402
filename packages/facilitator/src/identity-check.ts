@@ -1,6 +1,9 @@
 import type { PublicClient } from 'viem'
 import type { Logger } from 'pino'
 
+/** Max wait for RPC so verify is not blocked by slow/timeout chain calls. */
+const IDENTITY_CHECK_TIMEOUT_MS = 5_000
+
 const IDENTITY_REGISTRY_ABI = [
   {
     inputs: [{ internalType: 'address', name: 'user', type: 'address' }],
@@ -32,12 +35,18 @@ export async function checkIdentity(
   try {
     logger.debug({ address, registryAddress }, 'checking identity on-chain')
 
-    const isValid = await client.readContract({
-      address: registryAddress as `0x${string}`,
-      abi: IDENTITY_REGISTRY_ABI,
-      functionName: 'isValid',
-      args: [address as `0x${string}`],
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Identity check timed out')), IDENTITY_CHECK_TIMEOUT_MS)
     })
+    const isValid = await Promise.race([
+      client.readContract({
+        address: registryAddress as `0x${string}`,
+        abi: IDENTITY_REGISTRY_ABI,
+        functionName: 'isValid',
+        args: [address as `0x${string}`],
+      }),
+      timeoutPromise,
+    ])
 
     if (!isValid) {
       // Get more details for logging

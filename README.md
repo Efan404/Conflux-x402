@@ -23,6 +23,7 @@ A developer toolkit for running x402 payments on Conflux eSpace mainnet with USD
 - `packages/identity-cli`: identity registration/check CLI
 - `examples/sandbox`: sandbox paid API with auth gate + refund flow
 - `examples/moviememo`: MovieMemo paid API demo
+- `examples/hackathon-web`: React hackathon UI (overview + paywall/discovery/refund demos)
 - `tools/client`: x402 payment client
 - `tools/mcp-server`: MCP server with x402 payment tools
 - `tools/buyer-agent`: on-chain discovery + bazaar query demo client
@@ -47,6 +48,12 @@ pnpm dev:facilitator
 pnpm dev:sandbox
 ```
 
+Run hackathon frontend:
+
+```bash
+pnpm dev:hackathon-web
+```
+
 Client:
 
 ```bash
@@ -55,6 +62,8 @@ pnpm start:client:manual
 ```
 
 ## Identity gating (optional)
+
+If you are **not** using identity gating, leave `IDENTITY_REGISTRY_ADDRESS` **unset** in `.env`. When set, the facilitator calls the registry on every verify; a slow or timing-out RPC can block the client until the call completes or times out.
 
 1. Deploy contracts in `packages/contracts`.
 2. Start attestor: `pnpm dev:attestor`.
@@ -117,3 +126,4 @@ Required env:
 
 - `dev:server` is kept as an alias to `dev:sandbox` for compatibility.
 - `VERIFY_ONLY_MODE=true` means no on-chain settlement execution.
+- If facilitator hangs at "settlement starting", RPC or tx confirmation is slow. Set `RPC_TIMEOUT_MS` and `SETTLEMENT_RECEIPT_TIMEOUT_MS` in `.env` to fail fast instead of blocking (defaults: 30s and 90s).

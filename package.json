@@ -19,7 +19,8 @@
     "start:mcp": "pnpm --filter @conflux-x402/mcp-server start",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "test:contracts": "pnpm --filter @conflux-x402/contracts test"
+    "test:contracts": "pnpm --filter @conflux-x402/contracts test",
+    "dev:hackathon-web": "pnpm --filter @conflux-x402/hackathon-web dev"
   },
   "engines": {
     "node": ">=18.0.0"

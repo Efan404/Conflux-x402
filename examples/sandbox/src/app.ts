@@ -1,5 +1,7 @@
 import express from 'express'
 import type { Express } from 'express'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { createPublicClient, createWalletClient, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { paymentMiddleware } from '@x402/express'
@@ -19,6 +21,7 @@ import { RefundStore } from './refund/refund-store.js'
 import { processRefund } from './refund/refund-worker.js'
 import type { SendRefundTx } from './refund/refund-worker.js'
 import { createRefundRouter } from './routes/refunds.js'
+import { createDemoRouter } from './routes/demo.js'
 
 const ERC20_TRANSFER_ABI = [
   {
@@ -34,8 +37,10 @@ const ERC20_TRANSFER_ABI = [
 ] as const
 
 export function createApp(config: ServerConfig): Express {
+  const publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../public')
   const app = express()
   app.use(express.json())
+  app.use(express.static(publicDir))
   registerPublicRoutes(app)
 
   // Build route configs
@@ -165,6 +170,7 @@ export function createApp(config: ServerConfig): Express {
 
   // Register refund query route (always available, no payment/auth needed)
   app.use('/refunds', createRefundRouter(refundStore))
+  app.use('/demo/api', createDemoRouter(config))
 
   return app
 }

@@ -17,6 +17,53 @@ export interface RefundWrapperDeps {
   enqueueRefund: (requestId: string) => Promise<void>
 }
 
+function headerToString(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    return trimmed.length > 0 ? trimmed : null
+  }
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      if (typeof entry === 'string') {
+        const trimmed = entry.trim()
+        if (trimmed.length > 0) return trimmed
+      }
+    }
+  }
+  return null
+}
+
+function parseSettlementTxFromPaymentResponse(encoded: string): string | null {
+  const decoded = Buffer.from(encoded, 'base64').toString('utf8')
+  const parsed = JSON.parse(decoded) as { transaction?: unknown }
+  if (typeof parsed.transaction === 'string' && parsed.transaction.trim().length > 0) {
+    return parsed.transaction.trim()
+  }
+  return null
+}
+
+function resolveSettlementTxHash(res: Response, requestId: string): string | null {
+  // Backward-compatible header used by older local mocks.
+  const legacy = headerToString(res.getHeader('x-settlement-transaction'))
+  if (legacy) return legacy
+
+  // x402 v2 sets PAYMENT-RESPONSE (base64-encoded settle response JSON).
+  const paymentResponse =
+    headerToString(res.getHeader('payment-response')) ||
+    headerToString(res.getHeader('x-payment-response'))
+  if (!paymentResponse) return null
+
+  try {
+    return parseSettlementTxFromPaymentResponse(paymentResponse)
+  } catch (error) {
+    logger.warn(
+      { requestId, error: error instanceof Error ? error.message : String(error) },
+      'refund-wrapper: failed to parse PAYMENT-RESPONSE header',
+    )
+    return null
+  }
+}
+
 declare global {
   namespace Express {
     interface Request {
@@ -56,9 +103,12 @@ export function createRefundWrapper(deps: RefundWrapperDeps) {
         if (refundRequested !== '1') return
 
         // Guard 2: settlement tx must exist (payment was collected)
-        const settleTxHash = res.getHeader('x-settlement-transaction') as string | undefined
+        const settleTxHash = resolveSettlementTxHash(res, requestId)
         if (!settleTxHash) {
-          logger.warn({ requestId }, 'refund-wrapper: refund requested but no settlement tx')
+          logger.warn(
+            { requestId },
+            'refund-wrapper: refund requested but no settlement tx (missing PAYMENT-RESPONSE)',
+          )
           return
         }
 

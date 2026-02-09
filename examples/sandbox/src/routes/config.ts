@@ -43,6 +43,16 @@ export function buildRoutes(_serverConfig: ServerConfig): Record<string, GateRou
       resourceId: 'weather',
       refund: { enabled: true },
     }),
+    'GET /sandbox/refund-trigger': GateRouteConfigSchema.parse({
+      enableIdentity: false,
+      enablePayment: true,
+      price: '$0.001',
+      amount: '1000',
+      description: 'Dedicated endpoint to trigger refund pipeline (always sets refund headers)',
+      mimeType: 'application/json',
+      resourceId: 'refund-trigger',
+      refund: { enabled: true },
+    }),
     'GET /chart/render': GateRouteConfigSchema.parse({
       enableIdentity: false,
       enablePayment: true,

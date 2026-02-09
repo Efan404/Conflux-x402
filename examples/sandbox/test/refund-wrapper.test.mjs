@@ -5,6 +5,17 @@ import http from 'node:http'
 import { RefundStore } from '../dist/refund/refund-store.js'
 import { createRefundWrapper } from '../dist/middleware/refund-wrapper.js'
 
+function paymentResponseHeader(transaction = '0xsettle-hash') {
+  return Buffer.from(
+    JSON.stringify({
+      success: true,
+      transaction,
+      network: 'eip155:1030',
+    }),
+    'utf8',
+  ).toString('base64')
+}
+
 function makeRequest(app, path, headers = {}) {
   return new Promise((resolve, reject) => {
     const server = http.createServer(app)
@@ -72,7 +83,7 @@ test('refund-wrapper: enqueues refund when all guards pass', async () => {
   }))
   app.get('/test', (_req, res) => {
     // Simulate x402 settlement header
-    res.setHeader('x-settlement-transaction', '0xsettle-hash')
+    res.setHeader('PAYMENT-RESPONSE', paymentResponseHeader('0xsettle-hash'))
     // Business signals refund
     res.setHeader('X-Refund-Requested', '1')
     res.setHeader('X-Refund-Status', 'pending')
@@ -110,7 +121,7 @@ test('refund-wrapper: does NOT enqueue when X-Refund-Requested is absent', async
     enqueueRefund: async () => { enqueueCalled = true },
   }))
   app.get('/test', (_req, res) => {
-    res.setHeader('x-settlement-transaction', '0xsettle-hash')
+    res.setHeader('PAYMENT-RESPONSE', paymentResponseHeader('0xsettle-hash'))
     res.json({ ok: true })
   })
 
@@ -139,7 +150,7 @@ test('refund-wrapper: does NOT enqueue when route refund is disabled', async () 
     enqueueRefund: async () => { enqueueCalled = true },
   }))
   app.get('/test', (_req, res) => {
-    res.setHeader('x-settlement-transaction', '0xsettle-hash')
+    res.setHeader('PAYMENT-RESPONSE', paymentResponseHeader('0xsettle-hash'))
     res.setHeader('X-Refund-Requested', '1')
     res.json({ ok: false })
   })

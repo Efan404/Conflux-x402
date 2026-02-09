@@ -37,7 +37,7 @@ logger.info({ address: account.address }, 'facilitator wallet')
 const viemClient = createWalletClient({
   account,
   chain: confluxESpace,
-  transport: http(config.rpcUrl),
+  transport: http(config.rpcUrl, { timeout: config.rpcTimeoutMs }),
 }).extend(publicActions)
 
 const evmSigner = toFacilitatorEvmSigner({
@@ -75,7 +75,10 @@ const evmSigner = toFacilitatorEvmSigner({
   sendTransaction: (args: { to: `0x${string}`; data: `0x${string}` }) =>
     viemClient.sendTransaction(args),
   waitForTransactionReceipt: (args: { hash: `0x${string}` }) =>
-    viemClient.waitForTransactionReceipt(args),
+    viemClient.waitForTransactionReceipt({
+      ...args,
+      timeout: config.settlementReceiptTimeoutMs,
+    }),
 })
 
 function extractPayerAddress(paymentPayload: PaymentPayload): string | undefined {

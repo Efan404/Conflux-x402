@@ -13,9 +13,18 @@ const { fetchWithPay, account } = createPaymentFetch(config)
 
 logger.info({ address: account.address, server: config.serverUrl, authEnabled: config.authEnabled }, 'client initialized')
 
+const SANDBOX_ENDPOINTS = ['weather', 'refund-trigger'] as const
+type SandboxEndpoint = (typeof SANDBOX_ENDPOINTS)[number]
+
+function getSandboxTarget(): SandboxEndpoint {
+  const raw = process.argv[2] ?? process.env.CLIENT_TARGET ?? 'weather'
+  return raw === 'refund-trigger' ? 'refund-trigger' : 'weather'
+}
+
 async function main() {
-  const url = `${config.serverUrl}/sandbox/weather`
-  logger.info({ url }, 'requesting paid endpoint')
+  const target = getSandboxTarget()
+  const url = `${config.serverUrl}/sandbox/${target}`
+  logger.info({ url, target }, 'requesting paid endpoint')
 
   try {
     const response = await fetchWithPay(url)

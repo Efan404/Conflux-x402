@@ -51,12 +51,18 @@ async function getAuthHeaders(config: ReturnType<typeof loadClientConfig>, viemC
   })
 }
 
+function getSandboxTarget(): 'weather' | 'refund-trigger' {
+  const raw = process.argv[2] ?? process.env.CLIENT_TARGET ?? 'weather'
+  return raw === 'refund-trigger' ? 'refund-trigger' : 'weather'
+}
+
 async function main() {
   const config = loadClientConfig()
   const { account, httpClient, viemClient } = createPaymentFetch(config)
-  const url = `${config.serverUrl}/sandbox/weather`
+  const target = getSandboxTarget()
+  const url = `${config.serverUrl}/sandbox/${target}`
 
-  logger.info({ address: account.address, server: config.serverUrl, url, authEnabled: config.authEnabled }, 'manual client initialized')
+  logger.info({ address: account.address, server: config.serverUrl, url, target, authEnabled: config.authEnabled }, 'manual client initialized')
   logger.info('step 1: sending unpaid request')
 
   // First request: may need auth headers to avoid 403 before getting 402

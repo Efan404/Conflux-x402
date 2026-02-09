@@ -33,6 +33,10 @@ const FacilitatorConfigSchema = z.object({
 
   // Gas
   gasBufferPercent: z.coerce.number().default(50),
+
+  // RPC timeouts (avoid settlement hanging on slow RPC or long confirmation)
+  rpcTimeoutMs: z.coerce.number().default(30_000),
+  settlementReceiptTimeoutMs: z.coerce.number().default(90_000),
 })
 
 export type FacilitatorConfig = z.infer<typeof FacilitatorConfigSchema>
@@ -52,5 +56,7 @@ export function loadConfig(): FacilitatorConfig {
     identityRegistryAddress: process.env.IDENTITY_REGISTRY_ADDRESS,
     agentRegistryAddress: process.env.AGENT_REGISTRY_ADDRESS,
     gasBufferPercent: process.env.GAS_BUFFER_PERCENT,
+    rpcTimeoutMs: process.env.RPC_TIMEOUT_MS,
+    settlementReceiptTimeoutMs: process.env.SETTLEMENT_RECEIPT_TIMEOUT_MS,
   })
 }

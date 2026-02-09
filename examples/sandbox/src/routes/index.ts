@@ -1,12 +1,13 @@
 import type { Express } from 'express'
 import { healthHandler } from './health.js'
-import { weatherHandler } from './sandbox.js'
+import { weatherHandler, refundTriggerHandler } from './sandbox.js'
 import { chartHandler } from './chart.js'
 import { wellKnownBazaarHandler } from './well-known.js'
 
 export function registerRoutes(app: Express): void {
   app.get('/health', healthHandler)
   app.get('/sandbox/weather', weatherHandler)
+  app.get('/sandbox/refund-trigger', refundTriggerHandler)
   app.get('/chart/render', chartHandler)
 }
 
